@@ -21,6 +21,7 @@ ENV/
 .env
 .env.local
 .env.*.local
+*.env
 
 # pytest
 .pytest_cache/
