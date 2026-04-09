@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from bson import ObjectId
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.database import db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+bearer_scheme = HTTPBearer()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
@@ -26,13 +26,13 @@ def create_access_token(data: dict) -> str:
     return jwt.encode({**data, "exp": expire}, settings.JWT_SECRET, algorithm="HS256")
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="認証情報が無効です")
-        # ObjectId に変換してから検索（文字列では一致しない）
         user = db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             raise HTTPException(status_code=401, detail="ユーザーが見つかりません")
