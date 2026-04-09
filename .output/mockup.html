@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PotluckShare — 全画面モックアップ</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: #f5f5f0;
+        padding: 16px;
+      }
+      .root {
+        display: flex;
+        gap: 0;
+        min-height: 600px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f0efe8;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .sidebar {
+        width: 180px;
+        flex-shrink: 0;
+        background: #e8e7e0;
+        border-right: 1px solid #ddd;
+        padding: 12px 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar-section {
+        padding: 6px 12px 4px;
+        font-size: 11px;
+        font-weight: 500;
+        color: #999;
+        letter-spacing: 0.04em;
+        margin-top: 8px;
+      }
+      .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+        border-left: 2px solid transparent;
+      }
+      .sidebar-item:hover {
+        background: #fff;
+        color: #111;
+      }
+      .sidebar-item.active {
+        background: #fff;
+        color: #111;
+        font-weight: 500;
+        border-left-color: #185fa5;
+      }
+      .sidebar-icon {
+        font-size: 14px;
+        width: 18px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .screen-area {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+      }
+      .topbar {
+        height: 44px;
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+      .topbar-title {
+        font-size: 14px;
+        font-weight: 500;
+        flex: 1;
+      }
+      .topbar-role {
+        font-size: 11px;
+        color: #999;
+      }
+      .topbar-user {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: #dbeafe;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 500;
+        color: #1e40af;
+      }
+      .screen {
+        display: none;
+        padding: 20px;
+        flex: 1;
+        overflow-y: auto;
+      }
+      .screen.active {
+        display: block;
+      }
+      .ph {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .pt {
+        font-size: 17px;
+        font-weight: 500;
+      }
+      .ps {
+        font-size: 13px;
+        color: #666;
+        margin-top: 2px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background: transparent;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: #f5f5f5;
+      }
+      .btn-p {
+        background: #185fa5;
+        color: #fff;
+        border-color: #185fa5;
+      }
+      .btn-p:hover {
+        background: #0c447c;
+      }
+      .btn-s {
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+      .btn-d {
+        border-color: #fca5a5;
+        color: #dc2626;
+      }
+      .btn-d:hover {
+        background: #fef2f2;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin-bottom: 12px;
+      }
+      .card-hover {
+        cursor: pointer;
+      }
+      .card-hover:hover {
+        border-color: #ccc;
+      }
+      .fg {
+        margin-bottom: 14px;
+      }
+      .fl {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 5px;
+      }
+      .fi {
+        width: 100%;
+        padding: 7px 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 13px;
+      }
+      .fi:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+      .fr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .stat-g {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .stat-c {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 10px 14px;
+      }
+      .stat-l {
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 3px;
+      }
+      .stat-v {
+        font-size: 20px;
+        font-weight: 500;
+      }
+      .tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      .tbl th {
+        text-align: left;
+        font-weight: 500;
+        font-size: 11px;
+        color: #666;
+        padding: 7px 10px;
+        border-bottom: 1px solid #eee;
+      }
+      .tbl td {
+        padding: 9px 10px;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+      }
+      .tbl tr:last-child td {
+        border-bottom: none;
+      }
+      .tbl tr:hover td {
+        background: #fafafa;
+      }
+      .bdg {
+        display: inline-block;
+        font-size: 11px;
+        padding: 2px 7px;
+        border-radius: 6px;
+      }
+      .bdg-prep {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .bdg-done {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .bdg-cat {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+      .bdg-host {
+        background: #dbeafe;
+        color: #1e3a8a;
+      }
+      .bdg-mem {
+        background: #d1fae5;
+        color: #064e3b;
+      }
+      .av {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+      .memrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 0;
+        border-bottom: 1px solid #eee;
+      }
+      .memrow:last-child {
+        border-bottom: none;
+      }
+      .invite-box {
+        background: #f5f5f5;
+        border-radius: 8px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .invite-url {
+        font-size: 11px;
+        color: #666;
+        font-family: monospace;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .role-tag {
+        display: inline-block;
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: 6px;
+        margin-top: 5px;
+      }
+      .center-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 520px;
+      }
+      .auth-box {
+        width: 100%;
+        max-width: 320px;
+      }
+      .auth-logo {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .info-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 12px;
+        color: #1e40af;
+        margin-bottom: 14px;
+      }
+      .divider {
+        height: 1px;
+        background: #eee;
+        margin: 14px 0;
+      }
+      .hero {
+        text-align: center;
+        padding: 32px 20px;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .feature-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 14px;
+        text-align: center;
+      }
+      .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+      }
+      .setting-row:last-child {
+        border-bottom: none;
+      }
+      .step-bar {
+        display: flex;
+        gap: 0;
+        margin-bottom: 20px;
+      }
+      .step {
+        flex: 1;
+        text-align: center;
+        font-size: 11px;
+        padding: 6px;
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+      }
+      .step:first-child {
+        border-radius: 8px 0 0 8px;
+      }
+      .step:last-child {
+        border-radius: 0 8px 8px 0;
+      }
+      .step.active-step {
+        background: #185fa5;
+        color: #fff;
+        font-weight: 500;
+      }
+      .profile-av {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #dbeafe;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 500;
+        color: #1e40af;
+        margin: 0 auto 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="root">
+      <div class="sidebar">
+        <div style="padding: 10px 12px 8px; font-size: 14px; font-weight: 500">
+          🎉 PotluckShare
+        </div>
+        <div class="sidebar-section">未ログイン</div>
+        <div class="sidebar-item active" onclick="sw('p01')" id="nav-p01">
+          <span class="sidebar-icon">🏠</span>P01 ランディング
+        </div>
+        <div class="sidebar-item" onclick="sw('p02')" id="nav-p02">
+          <span class="sidebar-icon">🔑</span>P02 ログイン
+        </div>
+        <div class="sidebar-item" onclick="sw('p03')" id="nav-p03">
+          <span class="sidebar-icon">📝</span>P03 新規登録
+        </div>
+        <div class="sidebar-item" onclick="sw('p11')" id="nav-p11">
+          <span class="sidebar-icon">🔗</span>P11 招待受付
+        </div>
+        <div class="sidebar-section">主催者</div>
+        <div class="sidebar-item" onclick="sw('p04')" id="nav-p04">
+          <span class="sidebar-icon">📊</span>P04 ダッシュボード
+        </div>
+        <div class="sidebar-item" onclick="sw('p05')" id="nav-p05">
+          <span class="sidebar-icon">🎊</span>P05 パーティー作成
+        </div>
+        <div class="sidebar-item" onclick="sw('p06')" id="nav-p06">
+          <span class="sidebar-icon">👥</span>P06 参加者管理
+        </div>
+        <div class="sidebar-item" onclick="sw('p07')" id="nav-p07">
+          <span class="sidebar-icon">⚙️</span>P07 パーティー設定
+        </div>
+        <div class="sidebar-section">参加者共通</div>
+        <div class="sidebar-item" onclick="sw('p08')" id="nav-p08">
+          <span class="sidebar-icon">📋</span>P08 アイテム一覧
+        </div>
+        <div class="sidebar-item" onclick="sw('p09')" id="nav-p09">
+          <span class="sidebar-icon">➕</span>P09 アイテム追加
+        </div>
+        <div class="sidebar-item" onclick="sw('p10')" id="nav-p10">
+          <span class="sidebar-icon">✏️</span>P10 アイテム編集
+        </div>
+        <div class="sidebar-item" onclick="sw('p12')" id="nav-p12">
+          <span class="sidebar-icon">👤</span>P12 プロフィール
+        </div>
+      </div>
+      <div class="screen-area">
+        <div class="topbar">
+          <span class="topbar-title" id="topbar-title"
+            >P01 — ランディングページ</span
+          >
+          <span class="topbar-role" id="topbar-role">未ログイン</span>
+          <div class="topbar-user">田</div>
+        </div>
+        <div class="screen active" id="s-p01">
+          <div class="hero">
+            <div style="font-size: 40px; margin-bottom: 12px">🎉</div>
+            <div style="font-size: 22px; font-weight: 500; margin-bottom: 6px">
+              PotluckShare
+            </div>
+            <div
+              style="
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 20px;
+                line-height: 1.6;
+              "
+            >
+              ホームパーティーの持ち寄りを<br />みんなでリアルタイム共有。<br />重複なし、抜け漏れなし。
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center">
+              <button class="btn btn-p" onclick="sw('p02')">ログイン</button>
+              <button class="btn" onclick="sw('p03')">新規登録</button>
+            </div>
+          </div>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div style="font-size: 22px; margin-bottom: 6px">👀</div>
+              <div
+                style="font-size: 13px; font-weight: 500; margin-bottom: 4px"
+              >
+                リアルタイム共有
+              </div>
+              <div style="font-size: 11px; color: #666; line-height: 1.5">
+                誰が何を持ってくるか一目でわかる
+              </div>
+            </div>
+            <div class="feature-card">
+              <div style="font-size: 22px; margin-bottom: 6px">✅</div>
+              <div
+                style="font-size: 13px; font-weight: 500; margin-bottom: 4px"
+              >
+                重複チェック
+              </div>
+              <div style="font-size: 11px; color: #666; line-height: 1.5">
+                同じものを持ち寄る心配がない
+              </div>
+            </div>
+            <div class="feature-card">
+              <div style="font-size: 22px; margin-bottom: 6px">🔗</div>
+              <div
+                style="font-size: 13px; font-weight: 500; margin-bottom: 4px"
+              >
+                招待リンク
+              </div>
+              <div style="font-size: 11px; color: #666; line-height: 1.5">
+                URLを共有するだけで参加できる
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen" id="s-p02">
+          <div class="center-wrap">
+            <div class="auth-box">
+              <div class="auth-logo">
+                <div style="font-size: 32px; margin-bottom: 8px">🎉</div>
+                <div style="font-size: 18px; font-weight: 500">
+                  PotluckShare
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 3px">
+                  持ち寄りパーティー管理アプリ
+                </div>
+              </div>
+              <div class="card">
+                <div class="fg">
+                  <label class="fl">メールアドレス</label
+                  ><input
+                    class="fi"
+                    type="email"
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <div class="fg">
+                  <label class="fl">パスワード</label
+                  ><input class="fi" type="password" placeholder="••••••••" />
+                </div>
+                <button
+                  class="btn btn-p"
+                  style="
+                    width: 100%;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
+                  onclick="sw('p04')"
+                >
+                  ログイン
+                </button>
+                <button
+                  class="btn"
+                  style="width: 100%; justify-content: center; font-size: 12px"
+                  onclick="sw('p03')"
+                >
+                  アカウントをお持ちでない方は新規登録 →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen" id="s-p03">
+          <div class="center-wrap">
+            <div class="auth-box">
+              <div class="auth-logo">
+                <div style="font-size: 32px; margin-bottom: 8px">🎉</div>
+                <div style="font-size: 18px; font-weight: 500">
+                  アカウント作成
+                </div>
+              </div>
+              <div class="card">
+                <div class="step-bar">
+                  <div class="step active-step">1. 情報入力</div>
+                  <div class="step">2. 確認</div>
+                  <div class="step">3. 完了</div>
+                </div>
+                <div class="fg">
+                  <label class="fl">表示名</label
+                  ><input class="fi" placeholder="田中 健太" />
+                </div>
+                <div class="fg">
+                  <label class="fl">メールアドレス</label
+                  ><input
+                    class="fi"
+                    type="email"
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <div class="fg">
+                  <label class="fl">パスワード（8文字以上）</label
+                  ><input class="fi" type="password" placeholder="••••••••" />
+                </div>
+                <div class="fg">
+                  <label class="fl">パスワード（確認）</label
+                  ><input class="fi" type="password" placeholder="••••••••" />
+                </div>
+                <button
+                  class="btn btn-p"
+                  style="
+                    width: 100%;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
+                  onclick="sw('p02')"
+                >
+                  登録してログインへ
+                </button>
+                <button
+                  class="btn"
+                  style="width: 100%; justify-content: center; font-size: 12px"
+                  onclick="sw('p02')"
+                >
+                  すでにアカウントをお持ちの方はこちら
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen" id="s-p04">
+          <div class="ph">
+            <div>
+              <div class="pt">マイパーティー</div>
+              <div class="ps">参加・主催しているパーティー一覧</div>
+            </div>
+            <button class="btn btn-p" onclick="sw('p05')">＋ 新規作成</button>
+          </div>
+          <div class="card card-hover" onclick="sw('p08')">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+              "
+            >
+              <div>
+                <div style="font-size: 14px; font-weight: 500">
+                  田中家ホームパーティー 🎊
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 3px">
+                  4月15日（土）18:00〜 / 4名参加
+                </div>
+                <span class="role-tag bdg-host">主催者</span>
+              </div>
+              <div style="text-align: right">
+                <div style="font-size: 11px; color: #666">アイテム</div>
+                <div style="font-size: 20px; font-weight: 500">6</div>
+              </div>
+            </div>
+          </div>
+          <div class="card card-hover" onclick="sw('p08')">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+              "
+            >
+              <div>
+                <div style="font-size: 14px; font-weight: 500">
+                  花見パーティー 🌸
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 3px">
+                  4月20日（木）12:00〜 / 8名参加
+                </div>
+                <span class="role-tag bdg-mem">参加者</span>
+              </div>
+              <div style="text-align: right">
+                <div style="font-size: 11px; color: #666">アイテム</div>
+                <div style="font-size: 20px; font-weight: 500">11</div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="card card-hover"
+            style="
+              border-style: dashed;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              color: #666;
+              font-size: 13px;
+            "
+            onclick="sw('p05')"
+          >
+            <span style="font-size: 18px">＋</span> 新しいパーティーを作成
+          </div>
+        </div>
+        <div class="screen" id="s-p05">
+          <div class="ph">
+            <div class="pt">新しいパーティーを作成</div>
+            <button class="btn" onclick="sw('p04')">← 戻る</button>
+          </div>
+          <div class="card">
+            <div class="fg">
+              <label class="fl">パーティー名 *</label
+              ><input class="fi" placeholder="例：田中家ホームパーティー" />
+            </div>
+            <div class="fr">
+              <div class="fg">
+                <label class="fl">開催日 *</label
+                ><input class="fi" type="date" />
+              </div>
+              <div class="fg">
+                <label class="fl">開始時間</label
+                ><input class="fi" type="time" value="18:00" />
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">メモ（任意）</label
+              ><textarea
+                class="fi"
+                rows="3"
+                placeholder="テーマや注意点など"
+              ></textarea>
+            </div>
+            <div class="divider"></div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 12px">
+              作成後に招待リンクが発行されます。
+            </div>
+            <button
+              class="btn btn-p"
+              style="width: 100%; justify-content: center"
+              onclick="sw('p06')"
+            >
+              作成して招待リンクを発行
+            </button>
+          </div>
+        </div>
+        <div class="screen" id="s-p06">
+          <div class="ph">
+            <div>
+              <div class="pt">参加者管理</div>
+              <div class="ps">田中家ホームパーティー</div>
+            </div>
+            <button class="btn" onclick="sw('p04')">← 戻る</button>
+          </div>
+          <div class="card">
+            <div style="font-size: 13px; font-weight: 500; margin-bottom: 10px">
+              メンバー（4名）
+            </div>
+            <div class="memrow">
+              <div class="av" style="background: #ede9fe; color: #4c1d95">
+                田
+              </div>
+              <div style="flex: 1">
+                <div style="font-size: 13px; font-weight: 500">田中 健太</div>
+                <div style="font-size: 11px; color: #666">
+                  tanaka@example.com
+                </div>
+              </div>
+              <span class="bdg bdg-host">主催者</span>
+            </div>
+            <div class="memrow">
+              <div class="av" style="background: #d1fae5; color: #064e3b">
+                山
+              </div>
+              <div style="flex: 1">
+                <div style="font-size: 13px; font-weight: 500">山田 花子</div>
+                <div style="font-size: 11px; color: #666">
+                  yamada@example.com
+                </div>
+              </div>
+              <span class="bdg bdg-mem">参加者</span>
+            </div>
+            <div class="memrow">
+              <div class="av" style="background: #fef3c7; color: #78350f">
+                鈴
+              </div>
+              <div style="flex: 1">
+                <div style="font-size: 13px; font-weight: 500">鈴木 一郎</div>
+                <div style="font-size: 11px; color: #666">
+                  suzuki@example.com
+                </div>
+              </div>
+              <span class="bdg bdg-mem">参加者</span>
+            </div>
+            <div class="memrow">
+              <div class="av" style="background: #fce7f3; color: #831843">
+                佐
+              </div>
+              <div style="flex: 1">
+                <div style="font-size: 13px; font-weight: 500">佐藤 美咲</div>
+                <div style="font-size: 11px; color: #666">sato@example.com</div>
+              </div>
+              <span class="bdg bdg-mem">参加者</span>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size: 13px; font-weight: 500; margin-bottom: 4px">
+              招待リンク
+            </div>
+            <div class="invite-box">
+              <span class="invite-url"
+                >https://potluck.app/invite/a3f9bc82-1d4e-...</span
+              ><button
+                class="btn btn-s"
+                onclick="
+                  this.textContent = 'コピー済み';
+                  setTimeout(() => (this.textContent = 'コピー'), 2000);
+                "
+              >
+                コピー
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="screen" id="s-p07">
+          <div class="ph">
+            <div>
+              <div class="pt">パーティー設定</div>
+              <div class="ps">田中家ホームパーティー</div>
+            </div>
+            <button class="btn" onclick="sw('p04')">← 戻る</button>
+          </div>
+          <div class="card">
+            <div style="font-size: 13px; font-weight: 500; margin-bottom: 12px">
+              基本情報
+            </div>
+            <div class="fg">
+              <label class="fl">パーティー名</label
+              ><input class="fi" value="田中家ホームパーティー" />
+            </div>
+            <div class="fr">
+              <div class="fg">
+                <label class="fl">開催日</label
+                ><input class="fi" type="date" value="2025-04-15" />
+              </div>
+              <div class="fg">
+                <label class="fl">開始時間</label
+                ><input class="fi" type="time" value="18:00" />
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">メモ</label
+              ><textarea class="fi" rows="2">
+お菓子系のデザートも歓迎！</textarea
+              >
+            </div>
+            <button class="btn btn-p" style="margin-top: 4px">
+              変更を保存
+            </button>
+          </div>
+          <div class="card" style="border-color: #fca5a5">
+            <div
+              style="
+                font-size: 13px;
+                font-weight: 500;
+                color: #dc2626;
+                margin-bottom: 8px;
+              "
+            >
+              危険ゾーン
+            </div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 12px">
+              パーティーを削除すると、すべてのアイテムと参加者情報が削除されます。
+            </div>
+            <button class="btn btn-d btn-s">このパーティーを削除する</button>
+          </div>
+        </div>
+        <div class="screen" id="s-p08">
+          <div class="ph">
+            <div>
+              <div class="pt">田中家ホームパーティー 🎊</div>
+              <div class="ps">4月15日（土）18:00〜 / 4名参加</div>
+            </div>
+            <button class="btn btn-p" onclick="sw('p09')">
+              ＋ アイテム追加
+            </button>
+          </div>
+          <div class="stat-g">
+            <div class="stat-c">
+              <div class="stat-l">総アイテム</div>
+              <div class="stat-v" id="sc-total">6</div>
+            </div>
+            <div class="stat-c">
+              <div class="stat-l">完了</div>
+              <div class="stat-v" id="sc-done">2</div>
+            </div>
+            <div class="stat-c">
+              <div class="stat-l">準備中</div>
+              <div class="stat-v" id="sc-prep">4</div>
+            </div>
+          </div>
+          <div class="card" style="padding: 0; overflow: hidden">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>品名</th>
+                  <th>カテゴリ</th>
+                  <th>数量</th>
+                  <th>担当者</th>
+                  <th>ステータス</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="itbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="screen" id="s-p09">
+          <div class="ph">
+            <div class="pt">アイテムを追加</div>
+            <button class="btn" onclick="sw('p08')">← 戻る</button>
+          </div>
+          <div class="card">
+            <div class="info-box">田中家ホームパーティーに追加します</div>
+            <div class="fg">
+              <label class="fl">品名 *</label
+              ><input
+                class="fi"
+                id="new-name"
+                placeholder="例：唐揚げ、ビール、紙皿"
+              />
+            </div>
+            <div class="fr">
+              <div class="fg">
+                <label class="fl">カテゴリ *</label
+                ><select class="fi" id="new-cat">
+                  <option>料理</option>
+                  <option>飲み物</option>
+                  <option>デザート</option>
+                  <option>備品</option>
+                  <option>その他</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">数量・人数前</label
+                ><input class="fi" id="new-qty" placeholder="例：4人前、2本" />
+              </div>
+            </div>
+            <div class="divider"></div>
+            <button
+              class="btn btn-p"
+              style="width: 100%; justify-content: center"
+              onclick="addIt()"
+            >
+              追加する
+            </button>
+          </div>
+        </div>
+        <div class="screen" id="s-p10">
+          <div class="ph">
+            <div class="pt">アイテムを編集</div>
+            <button class="btn" onclick="sw('p08')">← 戻る</button>
+          </div>
+          <div class="card">
+            <div class="fg">
+              <label class="fl">品名 *</label
+              ><input class="fi" value="唐揚げ" />
+            </div>
+            <div class="fr">
+              <div class="fg">
+                <label class="fl">カテゴリ</label
+                ><select class="fi">
+                  <option selected>料理</option>
+                  <option>飲み物</option>
+                  <option>デザート</option>
+                  <option>備品</option>
+                  <option>その他</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">数量・人数前</label
+                ><input class="fi" value="4人前" />
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">ステータス</label
+              ><select class="fi">
+                <option>準備中</option>
+                <option>完了</option>
+              </select>
+            </div>
+            <div class="divider"></div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-p"
+                style="flex: 1; justify-content: center"
+                onclick="sw('p08')"
+              >
+                変更を保存</button
+              ><button class="btn btn-d" onclick="sw('p08')">削除</button>
+            </div>
+          </div>
+        </div>
+        <div class="screen" id="s-p11">
+          <div class="center-wrap">
+            <div class="auth-box">
+              <div class="auth-logo">
+                <div style="font-size: 32px; margin-bottom: 8px">🎊</div>
+                <div style="font-size: 18px; font-weight: 500">
+                  招待を受け取りました
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 6px">
+                  田中家ホームパーティーへの招待です
+                </div>
+              </div>
+              <div class="card" style="text-align: center">
+                <div style="font-size: 13px; color: #666; margin-bottom: 16px">
+                  参加するにはログインまたは新規登録が必要です
+                </div>
+                <div
+                  style="
+                    background: #f5f5f5;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 16px;
+                  "
+                >
+                  <div style="font-size: 12px; color: #666">招待パーティー</div>
+                  <div
+                    style="font-size: 15px; font-weight: 500; margin-top: 2px"
+                  >
+                    田中家ホームパーティー
+                  </div>
+                  <div style="font-size: 12px; color: #666; margin-top: 4px">
+                    4月15日（土）18:00〜 / 現在3名参加中
+                  </div>
+                </div>
+                <button
+                  class="btn btn-p"
+                  style="
+                    width: 100%;
+                    justify-content: center;
+                    margin-bottom: 8px;
+                  "
+                  onclick="sw('p08')"
+                >
+                  ログインして参加する
+                </button>
+                <button
+                  class="btn"
+                  style="width: 100%; justify-content: center; font-size: 12px"
+                  onclick="sw('p03')"
+                >
+                  新規登録して参加する
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen" id="s-p12">
+          <div class="ph"><div class="pt">プロフィール設定</div></div>
+          <div class="card" style="text-align: center; padding: 20px">
+            <div class="profile-av">田</div>
+            <div style="font-size: 15px; font-weight: 500">田中 健太</div>
+            <div style="font-size: 12px; color: #666; margin-top: 3px">
+              tanaka@example.com
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size: 13px; font-weight: 500; margin-bottom: 12px">
+              基本情報の変更
+            </div>
+            <div class="fg">
+              <label class="fl">表示名</label
+              ><input class="fi" value="田中 健太" />
+            </div>
+            <div class="fg">
+              <label class="fl">メールアドレス</label
+              ><input class="fi" value="tanaka@example.com" />
+            </div>
+            <button class="btn btn-p">変更を保存</button>
+          </div>
+          <div class="card">
+            <div style="font-size: 13px; font-weight: 500; margin-bottom: 12px">
+              パスワード変更
+            </div>
+            <div class="fg">
+              <label class="fl">現在のパスワード</label
+              ><input class="fi" type="password" placeholder="••••••••" />
+            </div>
+            <div class="fr">
+              <div class="fg">
+                <label class="fl">新しいパスワード</label
+                ><input class="fi" type="password" placeholder="••••••••" />
+              </div>
+              <div class="fg">
+                <label class="fl">確認</label
+                ><input class="fi" type="password" placeholder="••••••••" />
+              </div>
+            </div>
+            <button class="btn">パスワードを変更</button>
+          </div>
+          <div class="card">
+            <div class="setting-row" style="border: none; padding: 0">
+              <div>
+                <div style="font-size: 13px; font-weight: 500; color: #dc2626">
+                  アカウントを削除
+                </div>
+                <div style="font-size: 12px; color: #666">
+                  すべてのデータが削除されます
+                </div>
+              </div>
+              <button class="btn btn-d btn-s">削除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      var items = [
+        {
+          n: "唐揚げ",
+          c: "料理",
+          q: "4人前",
+          u: "田中 健太",
+          uid: "a",
+          done: false,
+        },
+        {
+          n: "ポテトサラダ",
+          c: "料理",
+          q: "3人前",
+          u: "山田 花子",
+          uid: "b",
+          done: false,
+        },
+        {
+          n: "ビール",
+          c: "飲み物",
+          q: "12本",
+          u: "鈴木 一郎",
+          uid: "c",
+          done: true,
+        },
+        {
+          n: "ソフトドリンク",
+          c: "飲み物",
+          q: "各2本",
+          u: "佐藤 美咲",
+          uid: "d",
+          done: false,
+        },
+        {
+          n: "紙皿・コップ",
+          c: "備品",
+          q: "20セット",
+          u: "田中 健太",
+          uid: "a",
+          done: true,
+        },
+        {
+          n: "チーズケーキ",
+          c: "デザート",
+          q: "1ホール",
+          u: "山田 花子",
+          uid: "b",
+          done: false,
+        },
+      ];
+      var avb = { a: "#ede9fe", b: "#d1fae5", c: "#fef3c7", d: "#fce7f3" };
+      var avc = { a: "#4c1d95", b: "#064e3b", c: "#78350f", d: "#831843" };
+      var avch = { a: "田", b: "山", c: "鈴", d: "佐" };
+      var titles = {
+        p01: "P01 — ランディングページ",
+        p02: "P02 — ログイン",
+        p03: "P03 — 新規登録",
+        p04: "P04 — ダッシュボード",
+        p05: "P05 — パーティー作成",
+        p06: "P06 — 参加者管理",
+        p07: "P07 — パーティー設定",
+        p08: "P08 — アイテム一覧",
+        p09: "P09 — アイテム追加",
+        p10: "P10 — アイテム編集",
+        p11: "P11 — 招待受付",
+        p12: "P12 — プロフィール設定",
+      };
+      var roles = {
+        p01: "未ログイン",
+        p02: "未ログイン",
+        p03: "未ログイン",
+        p11: "未ログイン",
+        p04: "ログイン済み",
+        p05: "主催者",
+        p06: "主催者",
+        p07: "主催者",
+        p08: "参加者 / 主催者",
+        p09: "参加者 / 主催者",
+        p10: "参加者 / 主催者",
+        p12: "ログイン済み",
+      };
+      function renderItems() {
+        var tb = document.getElementById("itbody");
+        if (!tb) return;
+        var done = items.filter(function (i) {
+          return i.done;
+        }).length;
+        document.getElementById("sc-done").textContent = done;
+        document.getElementById("sc-prep").textContent = items.length - done;
+        document.getElementById("sc-total").textContent = items.length;
+        tb.innerHTML = items
+          .map(function (it, idx) {
+            var av =
+              '<div style="width:20px;height:20px;border-radius:50%;background:' +
+              avb[it.uid] +
+              ";display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:" +
+              avc[it.uid] +
+              ';margin-right:5px;vertical-align:middle">' +
+              avch[it.uid] +
+              "</div>";
+            var bdg = it.done
+              ? '<span class="bdg bdg-done">完了</span>'
+              : '<span class="bdg bdg-prep">準備中</span>';
+            return (
+              '<tr><td style="font-weight:500">' +
+              it.n +
+              '</td><td><span class="bdg bdg-cat">' +
+              it.c +
+              '</span></td><td style="color:#666">' +
+              it.q +
+              '</td><td style="white-space:nowrap">' +
+              av +
+              it.u +
+              '</td><td><span style="cursor:pointer" onclick="tog(' +
+              idx +
+              ')">' +
+              bdg +
+              '</span></td><td><button class="btn btn-s btn-d" onclick="del(' +
+              idx +
+              ')">削除</button></td></tr>'
+            );
+          })
+          .join("");
+      }
+      function tog(i) {
+        items[i].done = !items[i].done;
+        renderItems();
+      }
+      function del(i) {
+        items.splice(i, 1);
+        renderItems();
+      }
+      function addIt() {
+        var n = document.getElementById("new-name").value.trim();
+        var c = document.getElementById("new-cat").value;
+        var q = document.getElementById("new-qty").value.trim();
+        if (!n) return;
+        items.push({
+          n: n,
+          c: c,
+          q: q || "—",
+          u: "田中 健太",
+          uid: "a",
+          done: false,
+        });
+        document.getElementById("new-name").value = "";
+        document.getElementById("new-qty").value = "";
+        sw("p08");
+      }
+      function sw(id) {
+        document.querySelectorAll(".screen").forEach(function (s) {
+          s.classList.remove("active");
+        });
+        document.querySelectorAll(".sidebar-item").forEach(function (s) {
+          s.classList.remove("active");
+        });
+        document.getElementById("s-" + id).classList.add("active");
+        var nav = document.getElementById("nav-" + id);
+        if (nav) nav.classList.add("active");
+        document.getElementById("topbar-title").textContent = titles[id] || id;
+        document.getElementById("topbar-role").textContent = roles[id] || "";
+        if (id === "p08") renderItems();
+      }
+      renderItems();
+    </script>
+  </body>
+</html>
