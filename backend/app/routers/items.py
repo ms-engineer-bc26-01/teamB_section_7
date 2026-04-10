@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone  # ← timezone を追加
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.auth import get_current_user
 from app.core.database import db
-from app.models.item import ItemCreate, ItemUpdate, StatusUpdate
+from app.models.item import ItemCreate, ItemResponse, ItemUpdate, StatusUpdate
 
 router = APIRouter()
 
@@ -37,14 +37,14 @@ def _format_item(item: dict) -> dict:
     }
 
 
-@router.get("/{party_id}/items", summary="アイテム一覧取得")
+@router.get("/{party_id}/items", summary="アイテム一覧取得", response_model=list[ItemResponse])
 def list_items(party_id: str, current_user=Depends(get_current_user)):
     _require_member(party_id, current_user)
     items = list(db.items.find({"party_id": party_id}))
     return [_format_item(i) for i in items]
 
 
-@router.post("/{party_id}/items", summary="アイテム追加")
+@router.post("/{party_id}/items", summary="アイテム追加", response_model=ItemResponse)
 def create_item(party_id: str, item: ItemCreate, current_user=Depends(get_current_user)):
     _require_member(party_id, current_user)
     new_item = {
@@ -54,8 +54,8 @@ def create_item(party_id: str, item: ItemCreate, current_user=Depends(get_curren
         "quantity": item.quantity,
         "registered_by": str(current_user["_id"]),
         "status": item.status,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),   # ← 修正
+        "updated_at": datetime.now(timezone.utc),   # ← 修正
     }
     result = db.items.insert_one(new_item)
     return {"id": str(result.inserted_id), **_format_item({**new_item, "_id": result.inserted_id})}
@@ -75,7 +75,7 @@ def update_item(
     _check_item_permission(item, current_user, party)
 
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
-    updates["updated_at"] = datetime.utcnow()
+    updates["updated_at"] = datetime.now(timezone.utc)  # ← 修正
     db.items.update_one({"_id": ObjectId(item_id)}, {"$set": updates})
     return {"message": "更新成功"}
 
@@ -90,7 +90,7 @@ def update_status(
     _require_member(party_id, current_user)
     result = db.items.update_one(
         {"_id": ObjectId(item_id), "party_id": party_id},
-        {"$set": {"status": body.status, "updated_at": datetime.utcnow()}},
+        {"$set": {"status": body.status, "updated_at": datetime.now(timezone.utc)}},  # ← 修正
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="アイテムが見つかりません")
