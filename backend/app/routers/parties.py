@@ -1,12 +1,12 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone  # ← timezone を追加
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.auth import get_current_user
 from app.core.database import db
-from app.models.party import JoinRequest, PartyCreate
+from app.models.party import JoinRequest, PartyCreate, PartyUpdate
 
 router = APIRouter()
 
@@ -39,7 +39,7 @@ def create_party(party: PartyCreate, current_user=Depends(get_current_user)):
         "owner_id": str(current_user["_id"]),
         "invite_token": str(uuid.uuid4()),
         "members": [str(current_user["_id"])],
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
     }
     result = db.parties.insert_one(new_party)
     return {"id": str(result.inserted_id), **_format_party({**new_party, "_id": result.inserted_id})}
@@ -56,16 +56,14 @@ def get_party(party_id: str, current_user=Depends(get_current_user)):
 
 
 @router.patch("/{party_id}", summary="パーティー情報更新（主催者のみ）")
-def update_party(party_id: str, party: PartyCreate, current_user=Depends(get_current_user)):
+def update_party(party_id: str, party: PartyUpdate, current_user=Depends(get_current_user)):
     existing = db.parties.find_one({"_id": ObjectId(party_id)})
     if not existing:
         raise HTTPException(status_code=404, detail="パーティーが見つかりません")
     if existing["owner_id"] != str(current_user["_id"]):
         raise HTTPException(status_code=403, detail="主催者のみ実行できます")
-    db.parties.update_one(
-        {"_id": ObjectId(party_id)},
-        {"$set": {"title": party.title, "date": party.date, "memo": party.memo}},
-    )
+    updates = {k: v for k, v in party.model_dump().items() if v is not None}
+    db.parties.update_one({"_id": ObjectId(party_id)}, {"$set": updates})
     return {"message": "更新成功"}
 
 
@@ -93,3 +91,4 @@ def join_party(party_id: str, token_body: JoinRequest, current_user=Depends(get_
         raise HTTPException(status_code=409, detail="すでに参加済みです")
     db.parties.update_one({"_id": ObjectId(party_id)}, {"$push": {"members": user_id}})
     return {"message": "参加成功"}
+
