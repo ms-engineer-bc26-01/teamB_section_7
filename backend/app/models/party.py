@@ -10,11 +10,17 @@ class PartyCreate(BaseModel):
     memo: Optional[str] = None
 
 
+class PartyUpdate(BaseModel):
+    title: Optional[str] = None
+    date: Optional[datetime] = None
+    memo: Optional[str] = None
+
+
 class PartyResponse(BaseModel):
     id: str
     title: str
     date: datetime
-    memo: Optional[str]
+    memo: Optional[str] = None
     owner_id: str
     invite_token: str
     members: list[str]
