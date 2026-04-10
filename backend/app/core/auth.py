@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,timezone
 
 from bson import ObjectId
 from fastapi import Depends, HTTPException
@@ -22,9 +22,8 @@ def hash_password(password: str) -> str:
 
 
 def create_access_token(data: dict) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)  # ← 修正
     return jwt.encode({**data, "exp": expire}, settings.JWT_SECRET, algorithm="HS256")
-
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
     token = credentials.credentials
