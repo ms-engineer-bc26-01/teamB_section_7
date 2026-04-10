@@ -13,4 +13,7 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# backend/ 配下を /app/ にコピーするため、
+# アプリコードは /app/app/main.py に配置される。
+# モジュール指定は app.main:app（/app を起点に app/main.py の app オブジェクト）
