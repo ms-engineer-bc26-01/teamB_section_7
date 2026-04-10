@@ -26,7 +26,7 @@ def register(user: UserCreate):
             "email": user.email,
             "password_hash": hashed,
             "display_name": user.display_name,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),  # ← 修正（L29）
         }
     )
     return UserResponse(
