@@ -43,4 +43,4 @@ def test_add_item_unauthorized(client):
         "quantity": "6本"
     })
 
-    assert res.status_code == 403
+    assert res.status_code == 401
