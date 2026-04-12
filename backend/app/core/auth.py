@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.database import db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def verify_password(plain: str, hashed: str) -> bool:
@@ -22,19 +22,44 @@ def hash_password(password: str) -> str:
 
 
 def create_access_token(data: dict) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)  # ← 修正
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     return jwt.encode({**data, "exp": expire}, settings.JWT_SECRET, algorithm="HS256")
 
+
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
+    # 開発モード：認証スキップ（認可ロジックは引き続き動作）
+    if settings.DEV_MODE:
+        return {
+            "_id": ObjectId("000000000000000000000001"),
+            "email": "dev@example.com",
+            "display_name": "Dev User",
+        }
+
+    # 未認証 → 401（HTTPBearerのauto_error=Falseにより403ではなく401を返す）
+    if credentials is None:
+        raise HTTPException(
+            status_code=401,
+            detail="認証が必要です",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
         user_id = payload.get("sub")
         if not user_id:
-            raise HTTPException(status_code=401, detail="認証情報が無効です")
+            raise HTTPException(
+                status_code=401,
+                detail="認証情報が無効です",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         user = db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             raise HTTPException(status_code=401, detail="ユーザーが見つかりません")
         return user
     except JWTError:
-        raise HTTPException(status_code=401, detail="トークンが無効です")
+        raise HTTPException(
+            status_code=401,
+            detail="トークンが無効です",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
