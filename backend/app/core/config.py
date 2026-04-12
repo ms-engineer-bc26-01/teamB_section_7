@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     MONGO_URI: str
     JWT_SECRET: str
     JWT_EXPIRE_MINUTES: int = 60
+    DEV_MODE: bool = False
 
     class Config:
         env_file = ".env"
