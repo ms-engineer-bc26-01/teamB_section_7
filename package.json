@@ -1,0 +1,23 @@
+{
+  "name": "teamb_section_7",
+  "version": "1.0.0",
+  "description": "section7の課題（チーム開発）",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ms-engineer-bc26-01/teamB_section_7.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ms-engineer-bc26-01/teamB_section_7/issues"
+  },
+  "homepage": "https://github.com/ms-engineer-bc26-01/teamB_section_7#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0"
+  }
+}
