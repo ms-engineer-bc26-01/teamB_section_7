@@ -31,6 +31,8 @@ export default function NewItemPage({ params }: Props) {
             {""}
             このパーティーにアイテムを追加します。
           </div>
+          // TODO: バックエンド連携時に Server Actions または 'use client' +
+          fetch で実装
           <form className="space-y-6">
             <label className="block text-sm font-medium text-slate-700">
               品名 *
