@@ -21,3 +21,4 @@ app.include_router(items.router, prefix="/api/parties", tags=["items"])
 @app.get("/", tags=["health"])
 def health_check():
     return {"status": "ok", "message": "Potluck Party API is running"}
+  
