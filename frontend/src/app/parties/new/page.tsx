@@ -22,6 +22,8 @@ export default function NewPartyPage() {
         </div>
 
         <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200">
+          // TODO: バックエンド連携時に Server Actions または 'use client' +
+          fetch で実装
           <form className="space-y-6">
             <label className="block text-sm font-medium text-slate-700">
               パーティー名 *
