@@ -34,7 +34,7 @@ export default function MembersPage({ params }: Props) {
           <div className="space-y-4">
             {members.map((member) => (
               <div
-                key={member.name}
+                key={member.id}
                 className="flex items-center justify-between gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-4"
               >
                 <div className="flex items-center gap-4">
