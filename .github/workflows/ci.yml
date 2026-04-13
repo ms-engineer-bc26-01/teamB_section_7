@@ -23,7 +23,7 @@ jobs:
         env:
           MONGO_URI: mongodb://localhost:27017/potluck_test
           JWT_SECRET: test-secret
-        run: pytest backend/tests/ -v
+        run: cd backend && pytest tests/ -v  # ← backend/ から実行
 
   # frontend-test:
   #   runs-on: ubuntu-latest
