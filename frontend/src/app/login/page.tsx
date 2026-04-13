@@ -11,6 +11,8 @@ export default function LoginPage() {
             アカウントでログインして続行してください。
           </p>
         </div>
+        // TODO: バックエンド連携時に Server Actions または 'use client' + fetch
+        で実装
         <form className="space-y-5">
           <label className="block text-sm font-medium text-slate-700">
             メールアドレス
