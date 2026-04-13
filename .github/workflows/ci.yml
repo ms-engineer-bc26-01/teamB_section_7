@@ -21,9 +21,10 @@ jobs:
         run: pip install -r backend/requirements.txt
       - name: pytest 実行
         env:
+          PYTHONPATH: backend
           MONGO_URI: mongodb://localhost:27017/potluck_test
           JWT_SECRET: test-secret
-        run: cd backend && pytest tests/ -v  # ← backend/ から実行
+        run: pytest backend/tests/ -v
 
   # frontend-test:
   #   runs-on: ubuntu-latest
