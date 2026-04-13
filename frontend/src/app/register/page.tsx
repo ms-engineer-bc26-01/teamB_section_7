@@ -29,6 +29,7 @@ export function RegisterForm() {
   };
 
   return (
+    // TODO: バックエンド連携時に Server Actions または 'use client' + fetch で実装
     <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
       {/* サーバーエラー表示 */}
       {serverError && (
