@@ -53,3 +53,6 @@ Thumbs.db
 
 # Docker
 *.log
+
+# Output directory
+.output/
