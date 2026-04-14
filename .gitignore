@@ -49,6 +49,10 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+.output/
 
 # Docker
 *.log
+
+# Output directory
+.output/
