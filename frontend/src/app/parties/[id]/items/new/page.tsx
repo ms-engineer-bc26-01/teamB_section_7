@@ -1,10 +1,46 @@
+"use client";
+
+import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 
-interface Props {
-  params: { id: string };
-}
+import { apiRequest } from "@/lib/api";
 
-export default function NewItemPage({ params }: Props) {
+export default function NewItemPage() {
+  const params = useParams<{ id: string }>();
+  const partyId = params.id;
+  const router = useRouter();
+
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("料理");
+  const [quantity, setQuantity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      await apiRequest(`/api/parties/${partyId}/items`, {
+        method: "POST",
+        body: {
+          name,
+          category,
+          quantity,
+        },
+      });
+      router.push(`/parties/${partyId}/items`);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "アイテム追加に失敗しました",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-3xl space-y-6">
@@ -15,11 +51,11 @@ export default function NewItemPage({ params }: Props) {
               アイテムを追加
             </h1>
             <p className="mt-2 text-sm text-slate-600">
-              パーティーID: {params.id}
+              パーティーID: {partyId}
             </p>
           </div>
           <Link
-            href={`/parties/${params.id}/items`}
+            href={`/parties/${partyId}/items`}
             className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
           >
             ← 戻る
@@ -31,21 +67,26 @@ export default function NewItemPage({ params }: Props) {
             {""}
             このパーティーにアイテムを追加します。
           </div>
-          // TODO: バックエンド連携時に Server Actions または 'use client' +
-          fetch で実装
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <label className="block text-sm font-medium text-slate-700">
               品名 *
               <input
                 className="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-slate-400 focus:outline-none"
                 type="text"
                 placeholder="例：唐揚げ、ビール、紙皿"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
               />
             </label>
             <div className="grid gap-5 sm:grid-cols-2">
               <label className="block text-sm font-medium text-slate-700">
                 カテゴリ *
-                <select className="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-slate-400 focus:outline-none">
+                <select
+                  className="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-slate-400 focus:outline-none"
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value)}
+                >
                   <option>料理</option>
                   <option>飲み物</option>
                   <option>デザート</option>
@@ -59,14 +100,23 @@ export default function NewItemPage({ params }: Props) {
                   className="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-slate-400 focus:outline-none"
                   type="text"
                   placeholder="例：4人前、2本"
+                  value={quantity}
+                  onChange={(event) => setQuantity(event.target.value)}
+                  required
                 />
               </label>
             </div>
+            {error && (
+              <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </p>
+            )}
             <button
               className="w-full rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
               type="submit"
+              disabled={isSubmitting}
             >
-              追加する
+              {isSubmitting ? "追加中..." : "追加する"}
             </button>
           </form>
         </div>

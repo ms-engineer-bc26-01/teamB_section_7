@@ -1,16 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+
+import { apiRequest } from "@/lib/api";
+import { setAuthToken, setCurrentUser } from "@/lib/auth";
 import { registerSchema, RegisterInput } from "@/lib/validations/auth";
-import { useRegister } from "@/hooks/useRegister";
+import { AuthTokenResponse, User } from "@/lib/types";
 
 export default function RegisterPage() {
-  const { register: submitRegister } = useRegister();
+  const router = useRouter();
   const [serverError, setServerError] = useState("");
-
   const {
     register,
     handleSubmit,
@@ -22,7 +25,25 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterInput) => {
     setServerError("");
     try {
-      await submitRegister(data);
+      const user = await apiRequest<User>("/api/auth/register", {
+        method: "POST",
+        useAuth: false,
+        body: {
+          email: data.email,
+          password: data.password,
+          display_name: data.display_name,
+        },
+      });
+
+      const loginResponse = await apiRequest<AuthTokenResponse>("/api/auth/login", {
+        method: "POST",
+        useAuth: false,
+        body: { email: data.email, password: data.password },
+      });
+
+      setCurrentUser(user);
+      setAuthToken(loginResponse.access_token);
+      router.push("/dashboard");
     } catch (e) {
       setServerError(e instanceof Error ? e.message : "登録に失敗しました");
     }
@@ -38,14 +59,7 @@ export default function RegisterPage() {
             アカウントを作成してパーティーに参加しましょう。
           </p>
         </div>
-        {/* TODO: バックエンド連携時に Server Actions または 'use client' +
-        fetch で実装 */}
-        <form
-          className="space-y-5"
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-        >
-          {/* サーバーエラー表示 */}
+        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
           {serverError && (
             <p
               role="alert"
@@ -54,8 +68,6 @@ export default function RegisterPage() {
               {serverError}
             </p>
           )}
-
-          {/* 表示名 */}
           <div>
             <label
               htmlFor="display_name"
@@ -77,7 +89,6 @@ export default function RegisterPage() {
             )}
           </div>
 
-          {/* メールアドレス */}
           <div>
             <label
               htmlFor="email"
@@ -99,7 +110,6 @@ export default function RegisterPage() {
             )}
           </div>
 
-          {/* パスワード */}
           <div>
             <label
               htmlFor="password"
@@ -121,7 +131,6 @@ export default function RegisterPage() {
             )}
           </div>
 
-          {/* ✅ 追加：パスワード確認フィールド */}
           <div>
             <label
               htmlFor="confirm_password"
@@ -142,8 +151,6 @@ export default function RegisterPage() {
               </p>
             )}
           </div>
-
-          {/* 送信ボタン */}
           <button
             className="w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
             type="submit"

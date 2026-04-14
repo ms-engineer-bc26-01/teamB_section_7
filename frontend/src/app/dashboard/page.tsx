@@ -1,21 +1,105 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-const parties = [
-  {
-    id: "1",
-    name: "田中家ホームパーティー",
-    subtitle: "4月15日（土）18:00〜 / 4名参加",
-    description: "持ち寄りリストを共有して、準備の重複を防ぎます。",
-  },
-  {
-    id: "2",
-    name: "山田家焼き肉会",
-    subtitle: "4月22日（土）19:00〜 / 6名参加",
-    description: "飲み物とデザートの担当を分担します。",
-  },
-];
+import { apiRequest } from "@/lib/api";
+import { Party, PartyStatus } from "@/lib/types";
 
 export default function DashboardPage() {
+  const [parties, setParties] = useState<Party[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openedInvitePartyId, setOpenedInvitePartyId] = useState<string | null>(
+    null,
+  );
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    const fetchParties = async () => {
+      try {
+        const data = await apiRequest<Party[]>("/api/parties/");
+        setParties(data);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "パーティー一覧の取得に失敗しました",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void fetchParties();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
+
+  const sortedParties = useMemo(
+    () => [...parties].sort((a, b) => +new Date(a.date) - +new Date(b.date)),
+    [parties],
+  );
+
+  const formatDate = (iso: string): string =>
+    new Intl.DateTimeFormat("ja-JP", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(iso));
+
+  const handleStatusChange = async (partyId: string, status: PartyStatus) => {
+    try {
+      await apiRequest(`/api/parties/${partyId}`, {
+        method: "PATCH",
+        body: { status },
+      });
+      setParties((prev) =>
+        prev.map((party) =>
+          party.id === partyId ? { ...party, status } : party,
+        ),
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "ステータス更新に失敗しました",
+      );
+    }
+  };
+
+  const handleDeleteParty = async (partyId: string) => {
+    const ok = window.confirm("このパーティーを削除しますか？");
+    if (!ok) {
+      return;
+    }
+
+    try {
+      await apiRequest(`/api/parties/${partyId}`, { method: "DELETE" });
+      setParties((prev) => prev.filter((party) => party.id !== partyId));
+      if (openedInvitePartyId === partyId) {
+        setOpenedInvitePartyId(null);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "パーティー削除に失敗しました",
+      );
+    }
+  };
+
+  const handleCopyInviteLink = async (inviteToken: string) => {
+    try {
+      const inviteUrl = `${window.location.origin}/invite/${inviteToken}`;
+      await navigator.clipboard.writeText(inviteUrl);
+    } catch {
+      setError("招待リンクのコピーに失敗しました");
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-8">
@@ -39,38 +123,105 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="grid gap-6">
-          {parties.map((party) => (
-            <Link
-              key={party.id}
-              href={`/parties/${party.id}/items`}
-              className="group rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-500">
-                    {party.name}
-                  </p>
-                  <p className="mt-1 text-base font-semibold text-slate-900">
-                    {party.subtitle}
-                  </p>
+        {error && (
+          <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
+          </p>
+        )}
+
+        {isLoading ? (
+          <div className="rounded-[28px] border border-slate-200 bg-white p-8 text-sm text-slate-600">
+            読み込み中...
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {sortedParties.map((party) => (
+              <div
+                key={party.id}
+                className="group rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <Link
+                      href={`/parties/${party.id}/items`}
+                      className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+                    >
+                      {party.title}
+                    </Link>
+                    <p className="mt-1 text-base font-semibold text-slate-900">
+                      {formatDate(party.date)} / {party.members.length}名参加
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${party.status === "終了" ? "bg-slate-200 text-slate-700" : "bg-emerald-100 text-emerald-900"}`}
+                  >
+                    {party.status}
+                  </span>
                 </div>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
-                  進行中
-                </span>
+                <p className="mt-4 text-sm leading-6 text-slate-600">
+                  {party.memo ?? "メモはまだ登録されていません。"}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <select
+                    value={party.status}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                    onChange={(event) =>
+                      void handleStatusChange(
+                        party.id,
+                        event.target.value as PartyStatus,
+                      )
+                    }
+                  >
+                    <option value="進行中">進行中</option>
+                    <option value="終了">終了</option>
+                  </select>
+                  <button
+                    type="button"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    onClick={() =>
+                      setOpenedInvitePartyId((prev) =>
+                        prev === party.id ? null : party.id,
+                      )
+                    }
+                  >
+                    招待リンク表示
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+                    onClick={() => void handleDeleteParty(party.id)}
+                  >
+                    削除
+                  </button>
+                </div>
+                {openedInvitePartyId === party.id && (
+                  <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+                    <p className="break-all">
+                      {origin
+                        ? `${origin}/invite/${party.invite_token}`
+                        : `/invite/${party.invite_token}`}
+                    </p>
+                    <button
+                      type="button"
+                      className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                      onClick={() =>
+                        void handleCopyInviteLink(party.invite_token)
+                      }
+                    >
+                      コピー
+                    </button>
+                  </div>
+                )}
               </div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">
-                {party.description}
-              </p>
+            ))}
+            <Link
+              href="/parties/new"
+              className="flex items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              ＋ 新しいパーティーを作成
             </Link>
-          ))}
-          <Link
-            href="/parties/new"
-            className="flex items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-          >
-            ＋ 新しいパーティーを作成
-          </Link>
-        </div>
+          </div>
+        )}
       </div>
     </main>
   );

@@ -1,6 +1,40 @@
+"use client";
+
+import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { apiRequest } from "@/lib/api";
+import { setAuthToken } from "@/lib/auth";
+import { AuthTokenResponse } from "@/lib/types";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await apiRequest<AuthTokenResponse>("/api/auth/login", {
+        method: "POST",
+        useAuth: false,
+        body: { email, password },
+      });
+      setAuthToken(response.access_token);
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ログインに失敗しました");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-md rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200">
@@ -11,15 +45,16 @@ export default function LoginPage() {
             アカウントでログインして続行してください。
           </p>
         </div>
-        // TODO: バックエンド連携時に Server Actions または 'use client' + fetch
-        で実装
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-slate-700">
             メールアドレス
             <input
               className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-slate-400 focus:outline-none"
               type="email"
               placeholder="example@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
             />
           </label>
           <label className="block text-sm font-medium text-slate-700">
@@ -28,13 +63,22 @@ export default function LoginPage() {
               className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 focus:border-slate-400 focus:outline-none"
               type="password"
               placeholder="••••••••"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
             />
           </label>
+          {error && (
+            <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {error}
+            </p>
+          )}
           <button
             className="w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
             type="submit"
+            disabled={isSubmitting}
           >
-            ログイン
+            {isSubmitting ? "ログイン中..." : "ログイン"}
           </button>
           <div className="text-center text-sm text-slate-600">
             アカウントをお持ちでないですか？{" "}
