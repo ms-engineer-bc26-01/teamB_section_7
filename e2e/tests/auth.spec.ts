@@ -9,20 +9,12 @@ test('E2E-01: 新規登録からダッシュボードへ', async ({ page }) => {
 
   await page.goto('http://localhost:3000/register');
 
-  await page.fill('input[name="displayName"]', 'テストユーザー');
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', 'password123');
-  await page.fill('input[name="passwordConfirm"]', 'password123');
+  await page.fill('#display_name', 'テストユーザー');
+  await page.fill('#email', email);
+  await page.fill('#password', 'password123');
+  await page.fill('#confirm_password', 'password123');
   await page.click('button[type="submit"]');
 
-  // ログイン画面に遷移したことを確認
-  await expect(page).toHaveURL(/\/login/);
-
-  // ログイン
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', 'password123');
-  await page.click('button[type="submit"]');
-
-  // ダッシュボードに遷移したことを確認
+  // 登録後、そのままダッシュボードに遷移することを確認
   await expect(page).toHaveURL(/\/dashboard/);
 });
