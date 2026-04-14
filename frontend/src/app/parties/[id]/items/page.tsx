@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { apiRequest } from "@/lib/api";
+import { formatDateTimeInJst } from "@/lib/datetime";
 import { Item, Party } from "@/lib/types";
 
 export default function ItemsPage() {
@@ -46,15 +47,6 @@ export default function ItemsPage() {
   );
   const prep = total - done;
 
-  const formatDate = (iso: string): string =>
-    new Intl.DateTimeFormat("ja-JP", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(iso));
-
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -68,7 +60,7 @@ export default function ItemsPage() {
             </h1>
             <p className="mt-2 text-sm text-slate-600">
               {party
-                ? `${formatDate(party.date)} / ${party.members.length}名参加`
+                ? `${formatDateTimeInJst(party.date)} / ${party.members.length}名参加`
                 : "読み込み中..."}
             </p>
           </div>

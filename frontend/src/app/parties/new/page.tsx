@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { apiRequest } from "@/lib/api";
+import { getTodayDateInJst, toIsoFromJstDateTime } from "@/lib/datetime";
 import { Party } from "@/lib/types";
 
 export default function NewPartyPage() {
@@ -22,9 +23,9 @@ export default function NewPartyPage() {
     setError(null);
 
     try {
-      const dateValue = date || new Date().toISOString().slice(0, 10);
+      const dateValue = date || getTodayDateInJst();
       const timeValue = time || "18:00";
-      const isoDate = new Date(`${dateValue}T${timeValue}:00`).toISOString();
+      const isoDate = toIsoFromJstDateTime(dateValue, timeValue);
 
       const created = await apiRequest<Party>("/api/parties/", {
         method: "POST",

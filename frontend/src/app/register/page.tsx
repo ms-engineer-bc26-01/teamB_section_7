@@ -35,11 +35,14 @@ export default function RegisterPage() {
         },
       });
 
-      const loginResponse = await apiRequest<AuthTokenResponse>("/api/auth/login", {
-        method: "POST",
-        useAuth: false,
-        body: { email: data.email, password: data.password },
-      });
+      const loginResponse = await apiRequest<AuthTokenResponse>(
+        "/api/auth/login",
+        {
+          method: "POST",
+          useAuth: false,
+          body: { email: data.email, password: data.password },
+        },
+      );
 
       setCurrentUser(user);
       setAuthToken(loginResponse.access_token);
@@ -59,7 +62,11 @@ export default function RegisterPage() {
             アカウントを作成してパーティーに参加しましょう。
           </p>
         </div>
-        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form
+          className="space-y-5"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+        >
           {serverError && (
             <p
               role="alert"

@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import { apiRequest } from "@/lib/api";
+import {
+  getTodayDateInJst,
+  splitIsoToJstDateTime,
+  toIsoFromJstDateTime,
+} from "@/lib/datetime";
 import { Party } from "@/lib/types";
 
 export default function SettingsPage() {
@@ -26,13 +31,13 @@ export default function SettingsPage() {
     const fetchParty = async () => {
       try {
         const data = await apiRequest<Party>(`/api/parties/${partyId}`);
-        const dateValue = new Date(data.date);
+        const dateTime = splitIsoToJstDateTime(data.date);
 
         setParty(data);
         setTitle(data.title);
         setMemo(data.memo ?? "");
-        setDate(dateValue.toISOString().slice(0, 10));
-        setTime(dateValue.toTimeString().slice(0, 5));
+        setDate(dateTime.date);
+        setTime(dateTime.time);
       } catch (err) {
         setError(
           err instanceof Error
@@ -55,9 +60,9 @@ export default function SettingsPage() {
     setError(null);
 
     try {
-      const dateValue = date || new Date().toISOString().slice(0, 10);
+      const dateValue = date || getTodayDateInJst();
       const timeValue = time || "18:00";
-      const isoDate = new Date(`${dateValue}T${timeValue}:00`).toISOString();
+      const isoDate = toIsoFromJstDateTime(dateValue, timeValue);
 
       await apiRequest(`/api/parties/${partyId}`, {
         method: "PATCH",

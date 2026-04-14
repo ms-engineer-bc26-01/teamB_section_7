@@ -18,10 +18,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3 sm:px-10 lg:px-16">
-        <Link
-          href="/dashboard"
-          className="text-base font-semibold text-slate-900"
-        >
+        <Link href="/" className="text-base font-semibold text-slate-900">
           PotluckShare
         </Link>
         <div className="flex items-center gap-4 text-sm">

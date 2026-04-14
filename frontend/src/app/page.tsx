@@ -34,12 +34,12 @@ export default function Home() {
             </div>
           </section>
           <section className="grid gap-4 sm:grid-cols-1">
-            <div className="rounded-3xl bg-slate-950 p-8 text-white shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
               <div className="text-5xl">👀</div>
               <h2 className="mt-4 text-xl font-semibold">
                 みんなの準備状況を一元管理
               </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 アイテムの担当者、数量、ステータスを一目で確認できます。
               </p>
             </div>
