@@ -26,6 +26,9 @@ def _check_item_permission(item: dict, current_user: dict, party: dict):
 
 
 def _format_item(item: dict) -> dict:
+    # 担当者のdisplay_nameをDBから取得
+    user = db.users.find_one({"_id": ObjectId(item["registered_by"])}) if item.get("registered_by") else None
+    registered_by_name = user["display_name"] if user else "不明"
     return {
         "id": str(item["_id"]),
         "party_id": item["party_id"],
@@ -33,6 +36,7 @@ def _format_item(item: dict) -> dict:
         "category": item["category"],
         "quantity": item["quantity"],
         "registered_by": item["registered_by"],
+        "registered_by_name": registered_by_name,
         "status": item["status"],
     }
 
