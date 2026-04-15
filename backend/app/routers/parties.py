@@ -45,6 +45,20 @@ def create_party(party: PartyCreate, current_user=Depends(get_current_user)):
     return {"id": str(result.inserted_id), **_format_party({**new_party, "_id": result.inserted_id})}
 
 
+@router.get("/by-token", summary="招待トークンでパーティー情報取得（認証不要）")
+def get_party_by_token(invite_token: str = Query(..., description="招待トークン")):
+    party = db.parties.find_one({"invite_token": invite_token})
+    if not party:
+        raise HTTPException(status_code=404, detail="パーティーが見つかりません")
+    return {
+        "id": str(party["_id"]),
+        "title": party["title"],
+        "date": party["date"],
+        "memo": party.get("memo"),
+        "member_count": len(party.get("members", [])),
+    }
+
+
 @router.get("/{party_id}", summary="パーティー詳細取得")
 def get_party(party_id: str, current_user=Depends(get_current_user)):
     party = db.parties.find_one({"_id": ObjectId(party_id)})
@@ -77,20 +91,6 @@ def delete_party(party_id: str, current_user=Depends(get_current_user)):
     db.parties.delete_one({"_id": ObjectId(party_id)})
     db.items.delete_many({"party_id": party_id})
     return {"message": "削除成功"}
-
-
-@router.get("/by-token", summary="招待トークンでパーティー情報取得（認証不要）")
-def get_party_by_token(invite_token: str = Query(..., description="招待トークン")):
-    party = db.parties.find_one({"invite_token": invite_token})
-    if not party:
-        raise HTTPException(status_code=404, detail="パーティーが見つかりません")
-    return {
-        "id": str(party["_id"]),
-        "title": party["title"],
-        "date": party["date"],
-        "memo": party.get("memo"),
-        "member_count": len(party.get("members", [])),
-    }
 
 
 @router.post("/{party_id}/join", summary="招待トークンでパーティー参加")
