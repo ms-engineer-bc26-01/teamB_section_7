@@ -42,7 +42,24 @@ export default function DashboardPage() {
   }, []);
 
   const sortedParties = useMemo(
-    () => [...parties].sort((a, b) => +new Date(a.date) - +new Date(b.date)),
+    () =>
+      [...parties].sort((a, b) => {
+        const aTime = new Date(a.date).getTime();
+        const bTime = new Date(b.date).getTime();
+        const aValid = Number.isFinite(aTime);
+        const bValid = Number.isFinite(bTime);
+
+        if (!aValid && !bValid) {
+          return 0;
+        }
+        if (!aValid) {
+          return 1;
+        }
+        if (!bValid) {
+          return -1;
+        }
+        return aTime - bTime;
+      }),
     [parties],
   );
 
@@ -141,7 +158,9 @@ export default function DashboardPage() {
                       {party.title}
                     </Link>
                     <p className="mt-1 text-base font-semibold text-slate-900">
-                      {formatDateTimeInJst(party.date)} / {party.members.length}
+                      {Number.isFinite(new Date(party.date).getTime())
+                        ? formatDateTimeInJst(party.date)
+                        : "日時未設定"} / {party.members.length}
                       名参加
                     </p>
                   </div>
