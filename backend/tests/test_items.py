@@ -34,6 +34,9 @@ def test_add_item_as_member(client):
 
     # 5. 結果確認
     assert res.status_code == 200
+    data = res.json()
+    assert "registered_by_name" in data
+    assert data["registered_by_name"] == "A"
 
 
 def test_add_item_unauthorized(client):

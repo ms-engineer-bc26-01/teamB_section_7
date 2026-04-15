@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -6,20 +5,20 @@ from pydantic import BaseModel
 
 class PartyCreate(BaseModel):
     title: str
-    date: datetime
+    date: str  # タイムゾーン変換を避けるためstr型で受け取り、そのまま保存
     memo: Optional[str] = None
 
 
 class PartyUpdate(BaseModel):
     title: Optional[str] = None
-    date: Optional[datetime] = None
+    date: Optional[str] = None  # 同上
     memo: Optional[str] = None
 
 
 class PartyResponse(BaseModel):
     id: str
     title: str
-    date: datetime
+    date: str
     memo: Optional[str] = None
     owner_id: str
     invite_token: str

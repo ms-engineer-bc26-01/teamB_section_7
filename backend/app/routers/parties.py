@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone  # ← timezone を追加
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.core.auth import get_current_user
 from app.core.database import db
@@ -43,6 +43,20 @@ def create_party(party: PartyCreate, current_user=Depends(get_current_user)):
     }
     result = db.parties.insert_one(new_party)
     return {"id": str(result.inserted_id), **_format_party({**new_party, "_id": result.inserted_id})}
+
+
+@router.get("/by-token", summary="招待トークンでパーティー情報取得（認証不要）")
+def get_party_by_token(invite_token: str = Query(..., description="招待トークン")):
+    party = db.parties.find_one({"invite_token": invite_token})
+    if not party:
+        raise HTTPException(status_code=404, detail="パーティーが見つかりません")
+    return {
+        "id": str(party["_id"]),
+        "title": party["title"],
+        "date": party["date"],
+        "memo": party.get("memo"),
+        "member_count": len(party.get("members", [])),
+    }
 
 
 @router.get("/{party_id}", summary="パーティー詳細取得")

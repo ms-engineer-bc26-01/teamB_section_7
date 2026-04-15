@@ -1,3 +1,5 @@
+name: potluck
+
 services:
   backend:
     build: ./backend

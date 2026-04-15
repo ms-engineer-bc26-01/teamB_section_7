@@ -1,4 +1,4 @@
-from datetime import datetime, timezone  # ← timezone を追加
+from datetime import datetime, timedelta, timezone
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,6 +8,7 @@ from app.core.database import db
 from app.models.item import ItemCreate, ItemResponse, ItemUpdate, StatusUpdate
 
 router = APIRouter()
+JST = timezone(timedelta(hours=9), name="JST")
 
 
 def _require_member(party_id: str, current_user: dict) -> dict:
@@ -26,6 +27,9 @@ def _check_item_permission(item: dict, current_user: dict, party: dict):
 
 
 def _format_item(item: dict) -> dict:
+    # 担当者のdisplay_nameをDBから取得
+    user = db.users.find_one({"_id": ObjectId(item["registered_by"])}) if item.get("registered_by") else None
+    registered_by_name = user["display_name"] if user else "不明"
     return {
         "id": str(item["_id"]),
         "party_id": item["party_id"],
@@ -33,6 +37,7 @@ def _format_item(item: dict) -> dict:
         "category": item["category"],
         "quantity": item["quantity"],
         "registered_by": item["registered_by"],
+        "registered_by_name": registered_by_name,
         "status": item["status"],
     }
 
@@ -54,8 +59,8 @@ def create_item(party_id: str, item: ItemCreate, current_user=Depends(get_curren
         "quantity": item.quantity,
         "registered_by": str(current_user["_id"]),
         "status": item.status,
-        "created_at": datetime.now(timezone.utc),   # ← 修正
-        "updated_at": datetime.now(timezone.utc),   # ← 修正
+        "created_at": datetime.now(JST),
+        "updated_at": datetime.now(JST),
     }
     result = db.items.insert_one(new_item)
     return {"id": str(result.inserted_id), **_format_item({**new_item, "_id": result.inserted_id})}
@@ -75,7 +80,7 @@ def update_item(
     _check_item_permission(item, current_user, party)
 
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
-    updates["updated_at"] = datetime.now(timezone.utc)  # ← 修正
+    updates["updated_at"] = datetime.now(JST)
     db.items.update_one({"_id": ObjectId(item_id)}, {"$set": updates})
     return {"message": "更新成功"}
 
@@ -90,7 +95,7 @@ def update_status(
     _require_member(party_id, current_user)
     result = db.items.update_one(
         {"_id": ObjectId(item_id), "party_id": party_id},
-        {"$set": {"status": body.status, "updated_at": datetime.now(timezone.utc)}},  # ← 修正
+        {"$set": {"status": body.status, "updated_at": datetime.now(JST)}},
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="アイテムが見つかりません")

@@ -34,4 +34,5 @@ class ItemResponse(BaseModel):
     category: str
     quantity: str
     registered_by: str
+    registered_by_name: str
     status: ItemStatus
