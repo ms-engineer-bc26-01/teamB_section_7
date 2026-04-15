@@ -1,4 +1,4 @@
-from datetime import datetime, timezone  # ← timezone を追加
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException
 
@@ -7,7 +7,7 @@ from app.core.database import db
 from app.models.user import UserCreate, UserLogin, UserResponse
 
 router = APIRouter()
-
+JST = timezone(timedelta(hours=9), name="JST")
 
 @router.post(
     "/register",
@@ -26,7 +26,7 @@ def register(user: UserCreate):
             "email": user.email,
             "password_hash": hashed,
             "display_name": user.display_name,
-            "created_at": datetime.now(timezone.utc),
+            "created_at": datetime.now(JST),
         }
     )
     return UserResponse(

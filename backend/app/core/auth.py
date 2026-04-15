@@ -11,7 +11,7 @@ from app.core.database import db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer(auto_error=False)
-
+JST = timezone(timedelta(hours=9), name="JST")
 
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
@@ -22,7 +22,7 @@ def hash_password(password: str) -> str:
 
 
 def create_access_token(data: dict) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
+    expire = datetime.now(JST) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     return jwt.encode({**data, "exp": expire}, settings.JWT_SECRET, algorithm="HS256")
 
 
