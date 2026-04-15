@@ -1,4 +1,5 @@
 const JST_TIME_ZONE = "Asia/Tokyo";
+const FALLBACK_DATETIME_TEXT = "日時未設定";
 
 const pad2 = (value: number): string => String(value).padStart(2, "0");
 
@@ -34,14 +35,25 @@ const getDateTimePartsInJst = (
 };
 
 export const formatDateTimeInJst = (iso: string): string =>
-  new Intl.DateTimeFormat("ja-JP", {
-    timeZone: JST_TIME_ZONE,
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(iso));
+  (() => {
+    if (!iso) {
+      return FALLBACK_DATETIME_TEXT;
+    }
+
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) {
+      return FALLBACK_DATETIME_TEXT;
+    }
+
+    return new Intl.DateTimeFormat("ja-JP", {
+      timeZone: JST_TIME_ZONE,
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(parsed);
+  })();
 
 export const toIsoFromJstDateTime = (
   dateValue: string,
