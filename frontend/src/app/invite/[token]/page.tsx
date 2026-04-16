@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { apiRequest } from "@/lib/api";
 import { formatDateTimeInJst } from "@/lib/datetime";
+import { getPartyByInviteToken } from "@/lib/invite";
 import { PartyByTokenResponse } from "@/lib/types";
 
 interface Props {
@@ -19,16 +19,11 @@ export default function InvitePage({ params }: Props) {
   useEffect(() => {
     const fetchParty = async () => {
       try {
-        const partyData = await apiRequest<PartyByTokenResponse>(
-          `/api/parties/by-token?invite_token=${encodeURIComponent(params.token)}`,
-          { useAuth: false },
-        );
+        const partyData = await getPartyByInviteToken(params.token);
         setParty(partyData);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : "招待情報の取得に失敗しました",
+          err instanceof Error ? err.message : "招待情報の取得に失敗しました",
         );
       } finally {
         setIsLoading(false);
@@ -61,9 +56,7 @@ export default function InvitePage({ params }: Props) {
         <div className="mb-6 rounded-3xl bg-slate-50 p-5 text-left text-sm text-slate-700">
           <p className="font-semibold text-slate-900">招待パーティー</p>
           <p className="mt-2 text-base font-semibold text-slate-950">
-            {isLoading
-              ? "読み込み中..."
-              : party?.title ?? "不明なパーティー"}
+            {isLoading ? "読み込み中..." : (party?.title ?? "不明なパーティー")}
           </p>
           <p className="mt-1 text-sm text-slate-600">
             {isLoading ? "" : `${partyDateText} / ${partyMemberText}`}
@@ -72,13 +65,13 @@ export default function InvitePage({ params }: Props) {
         </div>
 
         <Link
-          href="/login"
+          href={`/login?inviteToken=${encodeURIComponent(params.token)}`}
           className="mb-3 inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
         >
           ログインして参加する
         </Link>
         <Link
-          href="/register"
+          href={`/register?inviteToken=${encodeURIComponent(params.token)}`}
           className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
         >
           新規登録して参加する

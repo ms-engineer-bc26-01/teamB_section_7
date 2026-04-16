@@ -1,19 +1,26 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { apiRequest } from "@/lib/api";
-import { setAuthToken } from "@/lib/auth";
+import { joinPartyWithInviteToken } from "@/lib/invite";
+import { decodeJwtPayload, setAuthToken, setCurrentUser } from "@/lib/auth";
 import { AuthTokenResponse } from "@/lib/types";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setInviteToken(params.get("inviteToken"));
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,7 +33,21 @@ export default function LoginPage() {
         useAuth: false,
         body: { email, password },
       });
+
+      const payload = decodeJwtPayload(response.access_token);
+      setCurrentUser({
+        id: payload?.sub ?? "",
+        email,
+        display_name: email.split("@")[0] || email,
+      });
       setAuthToken(response.access_token);
+
+      if (inviteToken) {
+        const party = await joinPartyWithInviteToken(inviteToken);
+        router.push(`/parties/${party.id}/items`);
+        return;
+      }
+
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "ログインに失敗しました");
@@ -83,7 +104,11 @@ export default function LoginPage() {
           <div className="text-center text-sm text-slate-600">
             アカウントをお持ちでないですか？{" "}
             <Link
-              href="/register"
+              href={
+                inviteToken
+                  ? `/register?inviteToken=${encodeURIComponent(inviteToken)}`
+                  : "/register"
+              }
               className="font-semibold text-slate-900 hover:underline"
             >
               新規登録

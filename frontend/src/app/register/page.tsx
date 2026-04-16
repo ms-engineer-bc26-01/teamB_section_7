@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -8,11 +8,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { apiRequest } from "@/lib/api";
 import { setAuthToken, setCurrentUser } from "@/lib/auth";
+import { joinPartyWithInviteToken } from "@/lib/invite";
 import { registerSchema, RegisterInput } from "@/lib/validations/auth";
 import { AuthTokenResponse, User } from "@/lib/types";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [serverError, setServerError] = useState("");
   const {
     register,
@@ -21,6 +23,11 @@ export default function RegisterPage() {
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setInviteToken(params.get("inviteToken"));
+  }, []);
 
   const onSubmit = async (data: RegisterInput) => {
     setServerError("");
@@ -46,6 +53,13 @@ export default function RegisterPage() {
 
       setCurrentUser(user);
       setAuthToken(loginResponse.access_token);
+
+      if (inviteToken) {
+        const party = await joinPartyWithInviteToken(inviteToken);
+        router.push(`/parties/${party.id}/items`);
+        return;
+      }
+
       router.push("/dashboard");
     } catch (e) {
       setServerError(e instanceof Error ? e.message : "登録に失敗しました");
@@ -169,7 +183,11 @@ export default function RegisterPage() {
           <div className="text-center text-sm text-slate-600">
             すでにアカウントをお持ちですか？{" "}
             <Link
-              href="/login"
+              href={
+                inviteToken
+                  ? `/login?inviteToken=${encodeURIComponent(inviteToken)}`
+                  : "/login"
+              }
               className="font-semibold text-slate-900 hover:underline"
             >
               ログイン
