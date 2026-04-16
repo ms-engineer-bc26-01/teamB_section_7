@@ -23,6 +23,14 @@ export interface Party {
   members: string[];
 }
 
+export interface PartyByTokenResponse {
+  id: string;
+  title: string;
+  date: string;
+  memo?: string | null;
+  member_count: number;
+}
+
 export interface Item {
   id: string;
   party_id: string;
@@ -30,6 +38,7 @@ export interface Item {
   category: string;
   quantity: string;
   registered_by: string;
+  registered_by_name: string;
   status: ItemStatus;
 }
 
