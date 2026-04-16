@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { apiRequest } from "@/lib/api";
+import { decodeJwtPayload, getAuthToken } from "@/lib/auth";
 import { formatDateTimeInJst } from "@/lib/datetime";
 import { Party, PartyStatus } from "@/lib/types";
 
@@ -15,6 +16,7 @@ export default function DashboardPage() {
     null,
   );
   const [origin, setOrigin] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchParties = async () => {
@@ -39,6 +41,16 @@ export default function DashboardPage() {
     if (typeof window !== "undefined") {
       setOrigin(window.location.origin);
     }
+  }, []);
+
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      setCurrentUserId(null);
+      return;
+    }
+    const payload = decodeJwtPayload(token);
+    setCurrentUserId(payload?.sub ?? null);
   }, []);
 
   const sortedParties = useMemo(
@@ -144,94 +156,105 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid gap-6">
-            {sortedParties.map((party) => (
-              <div
-                key={party.id}
-                className="group rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <Link
-                      href={`/parties/${party.id}/items`}
-                      className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+            {sortedParties.map((party) => {
+              const isOwner = currentUserId === party.owner_id;
+
+              return (
+                <div
+                  key={party.id}
+                  className="group rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <Link
+                        href={`/parties/${party.id}/items`}
+                        className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+                      >
+                        {party.title}
+                      </Link>
+                      <p className="mt-1 text-base font-semibold text-slate-900">
+                        {Number.isFinite(new Date(party.date).getTime())
+                          ? formatDateTimeInJst(party.date)
+                          : "日時未設定"}{" "}
+                        / {party.members.length}
+                        名参加
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${party.status === "終了" ? "bg-slate-200 text-slate-700" : "bg-emerald-100 text-emerald-900"}`}
                     >
-                      {party.title}
-                    </Link>
-                    <p className="mt-1 text-base font-semibold text-slate-900">
-                      {Number.isFinite(new Date(party.date).getTime())
-                        ? formatDateTimeInJst(party.date)
-                        : "日時未設定"} / {party.members.length}
-                      名参加
-                    </p>
+                      {party.status}
+                    </span>
                   </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${party.status === "終了" ? "bg-slate-200 text-slate-700" : "bg-emerald-100 text-emerald-900"}`}
-                  >
-                    {party.status}
-                  </span>
-                </div>
-                <p className="mt-4 text-sm leading-6 text-slate-600">
-                  {party.memo ?? "メモはまだ登録されていません。"}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <select
-                    value={party.status}
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
-                    onChange={(event) =>
-                      void handleStatusChange(
-                        party.id,
-                        event.target.value as PartyStatus,
-                      )
-                    }
-                  >
-                    <option value="進行中">進行中</option>
-                    <option value="終了">終了</option>
-                  </select>
-                  <Link
-                    href={`/parties/${party.id}/settings`}
-                    className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    編集
-                  </Link>
-                  <button
-                    type="button"
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                    onClick={() =>
-                      setOpenedInvitePartyId((prev) =>
-                        prev === party.id ? null : party.id,
-                      )
-                    }
-                  >
-                    招待リンク表示
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50"
-                    onClick={() => void handleDeleteParty(party.id)}
-                  >
-                    削除
-                  </button>
-                </div>
-                {openedInvitePartyId === party.id && (
-                  <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
-                    <p className="break-all">
-                      {origin
-                        ? `${origin}/invite/${party.invite_token}`
-                        : `/invite/${party.invite_token}`}
-                    </p>
+                  <p className="mt-4 text-sm leading-6 text-slate-600">
+                    {party.memo ?? "メモはまだ登録されていません。"}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {isOwner && (
+                      <>
+                        <select
+                          value={party.status}
+                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                          onChange={(event) =>
+                            void handleStatusChange(
+                              party.id,
+                              event.target.value as PartyStatus,
+                            )
+                          }
+                        >
+                          <option value="進行中">進行中</option>
+                          <option value="終了">終了</option>
+                        </select>
+                        <Link
+                          href={`/parties/${party.id}/settings`}
+                          className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          編集
+                        </Link>
+                      </>
+                    )}
                     <button
                       type="button"
-                      className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                       onClick={() =>
-                        void handleCopyInviteLink(party.invite_token)
+                        setOpenedInvitePartyId((prev) =>
+                          prev === party.id ? null : party.id,
+                        )
                       }
                     >
-                      コピー
+                      招待リンク表示
                     </button>
+                    {isOwner && (
+                      <button
+                        type="button"
+                        className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+                        onClick={() => void handleDeleteParty(party.id)}
+                      >
+                        削除
+                      </button>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                  {openedInvitePartyId === party.id && (
+                    <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+                      <p className="break-all">
+                        {origin
+                          ? `${origin}/invite/${party.invite_token}`
+                          : `/invite/${party.invite_token}`}
+                      </p>
+                      <button
+                        type="button"
+                        className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                        onClick={() =>
+                          void handleCopyInviteLink(party.invite_token)
+                        }
+                      >
+                        コピー
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             <Link
               href="/parties/new"
               className="flex items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
