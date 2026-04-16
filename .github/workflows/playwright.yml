@@ -51,10 +51,16 @@ jobs:
           MONGO_URI: mongodb://localhost:27017/potluck_test
           JWT_SECRET: test-secret
           PYTHONPATH: .
-        run: uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 > /tmp/backend.log 2>&1 &
+          echo $! > /tmp/backend.pid
 
       - name: Wait for backend to be ready
-        run: npx wait-on http://localhost:8000/ --timeout 30000
+        run: npx wait-on http://localhost:8000/ --timeout 60000
+
+      - name: Verify backend is running
+        if: failure()
+        run: cat /tmp/backend.log
 
       - name: Run Playwright tests
         env:
