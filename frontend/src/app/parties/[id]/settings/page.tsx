@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import { apiRequest } from "@/lib/api";
+import { decodeJwtPayload, getAuthToken } from "@/lib/auth";
 import {
   getTodayDateInJst,
   splitIsoToJstDateTime,
@@ -26,11 +27,22 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isForbidden, setIsForbidden] = useState(false);
 
   useEffect(() => {
     const fetchParty = async () => {
       try {
         const data = await apiRequest<Party>(`/api/parties/${partyId}`);
+        const token = getAuthToken();
+        const currentUserId = token ? decodeJwtPayload(token)?.sub : undefined;
+
+        if (!currentUserId || currentUserId !== data.owner_id) {
+          setParty(data);
+          setIsForbidden(true);
+          setError("アクセス権限がありません");
+          return;
+        }
+
         const dateTime = splitIsoToJstDateTime(data.date);
 
         setParty(data);
@@ -38,6 +50,8 @@ export default function SettingsPage() {
         setMemo(data.memo ?? "");
         setDate(dateTime.date);
         setTime(dateTime.time);
+        setIsForbidden(false);
+        setError(null);
       } catch (err) {
         setError(
           err instanceof Error
@@ -99,6 +113,38 @@ export default function SettingsPage() {
       setIsDeleting(false);
     }
   };
+
+  if (!isLoading && isForbidden) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10 lg:px-16">
+        <div className="mx-auto max-w-3xl space-y-6">
+          <div className="rounded-[28px] bg-white p-8 shadow-sm ring-1 ring-slate-200">
+            <p className="text-sm font-semibold text-slate-500">
+              パーティー設定
+            </p>
+            <h1 className="mt-3 text-2xl font-semibold text-slate-950">
+              {party?.title ?? "パーティー"}
+            </h1>
+          </div>
+
+          <div className="rounded-[28px] border border-rose-200 bg-rose-50 p-8 shadow-sm">
+            <p className="text-base font-semibold text-rose-700">
+              アクセス権限がありません
+            </p>
+            <p className="mt-2 text-sm text-rose-700/80">
+              この画面は主催者のみ利用できます。
+            </p>
+            <Link
+              href="/dashboard"
+              className="mt-6 inline-flex rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+            >
+              ダッシュボードに戻る
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10 lg:px-16">

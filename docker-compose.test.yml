@@ -1,0 +1,48 @@
+name: potluck-test
+
+services:
+  # pytest（ユニットテスト）用
+  backend-test:
+    build: ./backend
+    command: pytest
+    environment:
+      - MONGO_URI=mongodb://mongo-test:27017/potluck_test
+      - JWT_SECRET=test-secret-key
+      - JWT_EXPIRE_MINUTES=60
+      - DEV_MODE=false
+    depends_on:
+      mongo-test:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  # Playwright（E2Eテスト）用バックエンドサーバー
+  backend-e2e:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongo-test:27017/potluck_test
+      - JWT_SECRET=test-secret-key
+      - JWT_EXPIRE_MINUTES=60
+      - DEV_MODE=false
+    depends_on:
+      mongo-test:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  mongo-test:
+    image: mongo:7
+    volumes:
+      - mongo_test_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  mongo_test_data:
