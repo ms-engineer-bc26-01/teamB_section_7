@@ -136,7 +136,7 @@ export default function ItemsPage() {
                       {item.quantity}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {item.registered_by}
+                      {item.registered_by_name}
                     </td>
                     <td className="px-5 py-4">
                       <span
