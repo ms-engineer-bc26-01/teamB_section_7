@@ -168,11 +168,11 @@ export default function DashboardPage() {
                     <div>
                       <Link
                         href={`/parties/${party.id}/items`}
-                        className="text-sm font-semibold text-slate-500 hover:text-slate-700"
+                        className="text-xl font-bold text-slate-900 hover:text-slate-600 hover:underline"
                       >
                         {party.title}
                       </Link>
-                      <p className="mt-1 text-base font-semibold text-slate-900">
+                      <p className="mt-1 text-sm text-slate-500">
                         {Number.isFinite(new Date(party.date).getTime())
                           ? formatDateTimeInJst(party.date)
                           : "日時未設定"}{" "}
@@ -190,6 +190,12 @@ export default function DashboardPage() {
                     {party.memo ?? "メモはまだ登録されていません。"}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href={`/parties/${party.id}/items`}
+                      className="inline-flex items-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+                    >
+                      アイテム一覧
+                    </Link>
                     {isOwner && (
                       <>
                         <select

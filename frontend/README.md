@@ -1,44 +1,51 @@
-　
+## 1.アプリの立ち上げ方
 
-まず、開発サーバーを起動します：
+# 1. バックエンド起動（Docker）
 
-\`\`\`bash
+docker compose up -d
+起動後、以下の URL にアクセスできます：
+
+API: http://localhost:8000
+Swagger UI: http://localhost:8000/docs
+
+# 2. フロントエンド起動
+
+```
+cd frontend
+npm install
 npm run dev
+```
 
-# または
+起動後、以下の URL にアクセスできます：
 
-yarn dev
+Frontend: [http://localhost:3000](http://localhost:3000)
 
-# または
+## 2. 画面一覧
 
-pnpm dev
+| 画面ID | 画面名                     | パス                            | 対象ロール               |
+| ------ | -------------------------- | ------------------------------- | ------------------------ |
+| P01    | ランディングページ         | /                               | 全員（未ログイン）       |
+| P02    | ログイン                   | /login                          | 全員（未ログイン）       |
+| P03    | 新規登録                   | /register                       | 全員（未ログイン）       |
+| P04    | ダッシュボード             | /dashboard                      | ログイン済み全員         |
+| P05    | パーティー作成             | /parties/new                    | 主催者                   |
+| P06    | 参加者管理                 | /parties/:id/members            | 主催者                   |
+| P07    | パーティー設定             | /parties/:id/settings           | 主催者                   |
+| P08    | アイテム一覧（共有リスト） | /parties/:id/items              | 参加者・主催者           |
+| P09    | アイテム追加               | /parties/:id/items/new          | 参加者・主催者           |
+| P10    | アイテム編集               | /parties/:id/items/:itemId/edit | 登録者・主催者           |
+| P11    | 招待受付                   | /invite/:token                  | 未ログイン・ログイン済み |
+| P12    | プロフィール設定           | /profile                        | ログイン済み全員         |
 
-# または
+## 3.今後実装想定の機能
 
-bun dev
-\`\`\`
+# プロフィール設定
 
-ブラウザで [http://localhost:3000](http://localhost:3000) を開くと結果を確認できます。
+```
+http://localhost:3000/profile
+```
 
-`app/page.tsx` を編集することでページの内容を変更できます。ファイルを編集すると自動的にページが更新されます。
-
-このプロジェクトでは [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) を使用して、Vercel向けの新しいフォントファミリーである [Geist](https://vercel.com/font) を自動的に最適化・読み込みしています。
-
-## 詳細
-
-Next.jsについて詳しく知るには、以下のリソースを参照してください：
-
-- [Next.js ドキュメント](https://nextjs.org/docs) - Next.jsの機能やAPIについて学べます
-- [Next.js チュートリアル](https://nextjs.org/learn) - インタラクティブに学べるチュートリアルです
-
-また、[Next.jsのGitHubリポジトリ](https://github.com/vercel/next.js) も確認できます。フィードバックやコントリビューションを歓迎しています！
-
-## Vercelへのデプロイ
-
-Next.jsアプリをデプロイする最も簡単な方法は、開発元が提供している [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) を使用することです。
-
-詳細については、[Next.js デプロイメントドキュメント](https://nextjs.org/docs/app/building-your-application/deploying) を参照してください。
-
-## db.json
-
-サンプルデータの扱いとする
+- ユーザー基本情報の変更の保存
+- パスワード変更の保存
+- アカウント削除の保存
+- ユーザーIDの非表示

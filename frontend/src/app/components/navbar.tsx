@@ -2,18 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
-import { clearAuth, getCurrentUser } from "@/lib/auth";
+import { clearAuth, getAuthToken, getCurrentUser } from "@/lib/auth";
 
 export default function Navbar() {
   const [displayName, setDisplayName] = useState("未ログイン");
+  const pathname = usePathname();
 
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
       setDisplayName(user.display_name || user.email);
+      return;
     }
-  }, []);
+
+    const token = getAuthToken();
+    setDisplayName(token ? "ログイン中" : "未ログイン");
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
